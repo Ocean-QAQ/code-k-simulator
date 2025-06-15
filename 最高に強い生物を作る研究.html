@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code K Life Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            margin: 0 auto; 
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #f5f5f5; 
+            color: #333; 
+            padding: 12px 25px;
+            border: 1px solid #ddd; 
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            font-weight: 600;
+        }
+        
+        .btn:hover {
+            background-color: #e0e0e0; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); 
+            border-color: #ccc;
+        }
+       
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin: 20px auto; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="modal" id="question-modal" style="display: block;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Parental Hope</h2>
+                </div>
+                <div class="modal-body">
+                    <p class="text-content">如果你有一个孩子，你最希望他（她）可以拥有什么？</p>
+                    <div class="center">
+                        <input type="text" id="user-input" placeholder="请输入你的回答..." style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                        <button class="btn" id="submit-btn">提交</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal" id="code-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Code K Life Simulator v1.0</h2>
+                </div>
+                <div class="modal-body">
+                    <pre class="code-block" id="original-code"></pre>
+                    <div class="center">
+                        <button class="btn" id="next-btn">下一步</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal" id="haiku-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">被水浸透的一张纸条</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="image-container">
+                         <img src="water note.png" alt="被水浸透的一张纸条">
+                    </div>
+                    <div class="haiku">
+                        露の世は<br>
+                        露の世ながら<br>
+                        さりながら
+                    </div>
+                    <div class="center">
+                        <button class="btn" id="close-btn">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal" id="crisis-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">K Survival Failure</h2>
+            </div>
+            <div class="modal-body">
+                <!-- 第一阶段：显示代码和结果 -->
+                <div id="crisis-code-stage">
+                    <h3>Crisis Simulation Code</h3>
+                    <pre class="code-block" id="crisis-code"></pre>
+                    
+                    <h3>Crisis Simulation Results</h3>
+                    <div class="result-box" id="crisis-result"></div>
+                    
+                    <div class="center">
+                        <button class="btn" id="crisis-next-btn">Next</button>
+                    </div>
+                </div>
+                
+                <!-- 第二阶段：点击Next后显示图片 -->
+                <div id="crisis-image-stage" style="display: none;">
+                    <div class="center" style="margin: 20px 0;">
+                        <h3 style="font-size: 1.5rem;">失败した</h3>
+                    </div>
+                    <div class="image-container">
+                        <img src="try again.png" alt="Try Again">
+                    </div>
+                    <div class="center">
+                        <button class="btn" id="try-again-btn">Try Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="footer">
+        最高に強い生物を作る研究; 2XXX-2X(X+2)(X+Y)
+    </div>
+
+    <script>
+        // 原始程序代码
+        const originalCode = `class LifeSimulator:
+    """
+    Life Decision Simulator
+    Core Rules:
+    1. S's only goal is to keep K happy
+    2. K's risk tolerance is independent of capability
+    3. Adjust strategy based on K's ambition level
+    4. All decisions require K's survival as prerequisite
+    """
+    
+    def __init__(self):
+        self.k_alive = True
+        
+    def make_decision(self, k_ambitious: bool):
+        if not self._check_survival():
+            return "[Survival condition not met]"
+            
+        if k_ambitious:
+            return self._develop_competence()
+        else:
+            return self._cultivate_contentment()
+    
+    def _check_survival(self) -> bool:
+        return self.k_alive
+    
+    @staticmethod
+    def _develop_competence() -> str:
+        strategies = [
+            "Training: Resilience enhancement program",
+            "Skills: Complex problem solving",
+            "Resources: High-level network building"
+        ]
+        return "Career Development Plan: " + " | ".join(strategies)
+    
+    @staticmethod
+    def _cultivate_contentment() -> str:
+        strategies = [
+            "Life appreciation: Sensory awareness",
+            "Empathy: Deep relationship building",
+            "Daily aesthetics: Finding joy in small things"
+        ]
+        return "Life Fulfillment Plan: " + " | ".join(strategies)`;
+
+        // 危机模拟代码
+        const crisisCode = `# Crisis Simulation Code
+simulator = LifeSimulator()
+print("\\n[Survival Crisis Test]")
+simulator.k_alive = False
+crisis_case = simulator.make_decision(True)
+print("Decision output when survival is compromised:", crisis_case)`;
+
+        // 危机模拟结果
+        const crisisResult = `=== CRISIS SIMULATION RESULTS ===
+
+Scenario 1 (K seeks greatness):
+[Survival condition not met]
+
+Scenario 2 (K values simple happiness):
+[Survival condition not met]
+
+=== THEOREMS ===
+Risk Axiom: Risk probability is constant regardless of K's capability
+Final Theorem: All strategies require K(alive)=True`;
+
+// DOM元素
+const questionModal = document.getElementById('question-modal');
+const codeModal = document.getElementById('code-modal');
+const haikuModal = document.getElementById('haiku-modal');
+const crisisModal = document.getElementById('crisis-modal');
+const submitBtn = document.getElementById('submit-btn');
+const nextBtn = document.getElementById('next-btn');
+const closeBtn = document.getElementById('close-btn');
+const tryAgainBtn = document.getElementById('try-again-btn');
+const userInput = document.getElementById('user-input');
+const originalCodeElement = document.getElementById('original-code');
+const crisisCodeElement = document.getElementById('crisis-code');
+const crisisResultElement = document.getElementById('crisis-result');
+const crisisNextBtn = document.getElementById('crisis-next-btn');
+const crisisCodeStage = document.getElementById('crisis-code-stage');
+const crisisImageStage = document.getElementById('crisis-image-stage');
+
+// 设置代码内容
+originalCodeElement.textContent = originalCode;
+crisisCodeElement.textContent = crisisCode;
+crisisResultElement.textContent = crisisResult;
+
+// 提交按钮事件
+submitBtn.addEventListener('click', () => {
+    const response = userInput.value.trim().toLowerCase();
+    
+    if (response.includes('幸福')) {
+        // 显示代码
+        questionModal.style.display = 'none';
+        codeModal.style.display = 'flex';
+    } else {
+        // 显示危机模拟(先显示代码部分)
+        questionModal.style.display = 'none';
+        crisisModal.style.display = 'flex';
+        crisisCodeStage.style.display = 'block';
+        crisisImageStage.style.display = 'none';
+    }
+});
+
+// 下一步按钮事件(原代码部分)
+nextBtn.addEventListener('click', () => {
+    codeModal.style.display = 'none';
+    haikuModal.style.display = 'flex';
+});
+
+// 危机模拟下一步按钮事件
+crisisNextBtn.addEventListener('click', () => {
+    crisisCodeStage.style.display = 'none';
+    crisisImageStage.style.display = 'block';
+});
+
+// 关闭按钮事件
+closeBtn.addEventListener('click', () => {
+    haikuModal.style.display = 'none';
+});
+
+// Try Again按钮事件
+tryAgainBtn.addEventListener('click', () => {
+    crisisModal.style.display = 'none';
+    questionModal.style.display = 'flex';
+    userInput.value = '';
+    // 重置危机模拟显示状态
+    crisisCodeStage.style.display = 'block';
+    crisisImageStage.style.display = 'none';
+});
+
+// 支持按Enter键提交
+userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        submitBtn.click();
+    }
+});
+    </script>
+</body>
+</html>
+<!-- 在HTML底部添加二维码 -->
+<div class="qr-code">
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://你的部署链接" alt="扫码打开">
+  <p>手机扫码访问</p>
+</div>
